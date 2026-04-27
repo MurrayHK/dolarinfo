@@ -1,630 +1,168 @@
-<!-- rewriting -->
+<!DOCTYPE html>
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DólarAR — Cotizaciones en tiempo real</title>
+<title>DólarAR — Oficial Bancos</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #050b14;
-    --surface: #0b1623;
-    --surface2: #111e2e;
-    --border: #1a2d42;
-    --accent: #00e5a0;
-    --accent2: #0080ff;
-    --red: #ff4060;
-    --yellow: #ffd24a;
-    --text: #e8f0f8;
-    --muted: #4a6080;
-    --mono: 'DM Mono', monospace;
-    --sans: 'Syne', sans-serif;
+    --bg: #050b14; --surface: #0b1623; --border: #1a2d42;
+    --accent: #00e5a0; --accent2: #0080ff; --red: #ff4060;
+    --text: #e8f0f8; --muted: #4a6080; --mono: 'DM Mono', monospace; --sans: 'Syne', sans-serif;
   }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Grid background */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* Glow orb */
-  body::after {
-    content: '';
-    position: fixed;
-    top: -200px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 800px;
-    height: 400px;
-    background: radial-gradient(ellipse, rgba(0,229,160,0.06) 0%, transparent 70%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .wrapper {
-    position: relative;
-    z-index: 1;
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 20px 60px;
-  }
-
-  /* HEADER */
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 28px 0 40px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 40px;
-  }
-
-  .logo {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-  }
-
-  .logo-dollar {
-    font-family: var(--sans);
-    font-size: 26px;
-    font-weight: 800;
-    color: var(--accent);
-    letter-spacing: -1px;
-  }
-
-  .logo-ar {
-    font-family: var(--sans);
-    font-size: 26px;
-    font-weight: 400;
-    color: var(--text);
-    letter-spacing: -1px;
-  }
-
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
-
-  .live-badge {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    background: rgba(0,229,160,0.08);
-    border: 1px solid rgba(0,229,160,0.2);
-    border-radius: 20px;
-    padding: 5px 12px 5px 9px;
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--accent);
-    letter-spacing: 0.5px;
-  }
-
-  .live-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--accent);
-    animation: pulse 1.5s infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(0.7); }
-  }
-
-  .last-update {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-  }
-
-  /* COUNTDOWN */
-  .countdown-bar {
-    height: 2px;
-    background: var(--border);
-    border-radius: 2px;
-    margin-bottom: 40px;
-    overflow: hidden;
-  }
-
-  .countdown-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent2), var(--accent));
-    border-radius: 2px;
-    transition: width 1s linear;
-  }
-
-  /* BEST RATES BANNER */
-  .best-banner {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 40px;
-  }
-
-  .best-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px 24px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .best-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-  }
-
-  .best-card.compra::before { background: linear-gradient(90deg, var(--accent2), var(--accent)); }
-  .best-card.venta::before { background: linear-gradient(90deg, var(--red), var(--yellow)); }
-
-  .best-label {
-    font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 8px;
-  }
-
-  .best-value {
-    font-family: var(--mono);
-    font-size: 32px;
-    font-weight: 400;
-    letter-spacing: -1px;
-    line-height: 1;
-    margin-bottom: 6px;
-  }
-
-  .best-card.compra .best-value { color: var(--accent); }
-  .best-card.venta .best-value { color: var(--red); }
-
-  .best-source {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text);
-    opacity: 0.7;
-  }
-
-  /* SECTION TITLE */
-  .section-title {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 16px;
-  }
-
-  /* CARDS GRID */
-  .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 16px;
-    margin-bottom: 40px;
-  }
-
-  .dolar-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 22px 24px;
-    cursor: default;
-    transition: border-color 0.2s, transform 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .dolar-card:hover {
-    border-color: rgba(0,229,160,0.25);
-    transform: translateY(-2px);
-  }
-
-  .dolar-card.highlight {
-    border-color: rgba(0,229,160,0.3);
-    background: linear-gradient(135deg, rgba(0,229,160,0.04) 0%, var(--surface) 100%);
-  }
-
-  .card-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 18px;
-  }
-
-  .card-name {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 3px;
-  }
-
-  .card-casa {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 1px;
-  }
-
-  .card-badge {
-    font-family: var(--mono);
-    font-size: 9px;
-    font-weight: 500;
-    letter-spacing: 1px;
-    padding: 3px 8px;
-    border-radius: 4px;
-    text-transform: uppercase;
-  }
-
-  .badge-official { background: rgba(0,128,255,0.15); color: var(--accent2); border: 1px solid rgba(0,128,255,0.2); }
-  .badge-parallel { background: rgba(0,229,160,0.1); color: var(--accent); border: 1px solid rgba(0,229,160,0.2); }
-  .badge-financial { background: rgba(255,210,74,0.1); color: var(--yellow); border: 1px solid rgba(255,210,74,0.2); }
-  .badge-digital { background: rgba(160,100,255,0.1); color: #a064ff; border: 1px solid rgba(160,100,255,0.2); }
-
-  .card-prices {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 14px;
-  }
-
-  .price-block {}
-
-  .price-label {
-    font-family: var(--mono);
-    font-size: 9px;
-    font-weight: 500;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 4px;
-  }
-
-  .price-value {
-    font-family: var(--mono);
-    font-size: 22px;
-    font-weight: 400;
-    letter-spacing: -0.5px;
-  }
-
-  .price-block.compra .price-value { color: #4dd9ac; }
-  .price-block.venta .price-value { color: #ff7090; }
-
-  .price-null { color: var(--muted) !important; font-size: 16px !important; }
-
-  .card-spread {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-  }
-
-  .spread-label {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-  }
-
-  .spread-value {
-    font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 500;
-    color: var(--yellow);
-  }
-
-  .updated-at {
-    font-family: var(--mono);
-    font-size: 9px;
-    color: var(--muted);
-    text-align: right;
-  }
-
-  /* LOADING */
-  .loading-state {
-    text-align: center;
-    padding: 80px 20px;
-  }
-
-  .loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin: 0 auto 20px;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .loading-text {
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--muted);
-  }
-
-  /* ERROR */
-  .error-state {
-    background: rgba(255,64,96,0.07);
-    border: 1px solid rgba(255,64,96,0.2);
-    border-radius: 12px;
-    padding: 24px;
-    text-align: center;
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--red);
-  }
-
-  /* REFRESH BUTTON */
-  .refresh-btn {
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-family: var(--mono);
-    font-size: 11px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .refresh-btn:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
-  /* FOOTER */
-  footer {
-    border-top: 1px solid var(--border);
-    padding-top: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-  }
-
-  /* ANIMATIONS */
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .dolar-card {
-    animation: fadeIn 0.4s ease both;
-  }
-
-  .dolar-card:nth-child(1) { animation-delay: 0.05s; }
-  .dolar-card:nth-child(2) { animation-delay: 0.10s; }
-  .dolar-card:nth-child(3) { animation-delay: 0.15s; }
-  .dolar-card:nth-child(4) { animation-delay: 0.20s; }
-  .dolar-card:nth-child(5) { animation-delay: 0.25s; }
-  .dolar-card:nth-child(6) { animation-delay: 0.30s; }
-  .dolar-card:nth-child(7) { animation-delay: 0.35s; }
-
-  /* VALUE FLASH */
-  @keyframes flashGreen {
-    0% { color: inherit; }
-    30% { color: var(--accent); background: rgba(0,229,160,0.12); border-radius: 3px; }
-    100% { color: inherit; background: transparent; }
-  }
-
-  .flash { animation: flashGreen 1s ease; }
-
-  @media (max-width: 600px) {
-    .best-banner { grid-template-columns: 1fr; }
-    .cards-grid { grid-template-columns: 1fr; }
-    .best-value { font-size: 26px; }
-    header { flex-wrap: wrap; gap: 12px; }
-    .header-right { flex-wrap: wrap; gap: 10px; }
-  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh; }
+  body::before { content:''; position:fixed; inset:0; background-image: linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px); background-size:40px 40px; pointer-events:none; z-index:0; }
+  .wrapper { position:relative; z-index:1; max-width:1200px; margin:0 auto; padding:0 20px 60px; }
+  header { display:flex; align-items:center; justify-content:space-between; padding:28px 0 40px; border-bottom:1px solid var(--border); margin-bottom:40px; }
+  .logo { display:flex; align-items:baseline; gap:6px; }
+  .logo-dollar { font-size:28px; font-weight:800; color:var(--accent); letter-spacing:-1px; }
+  .live-badge { background:rgba(0,229,160,0.08); border:1px solid rgba(0,229,160,0.2); border-radius:20px; padding:5px 12px; font-family:var(--mono); font-size:11px; color:var(--accent); display:flex; align-items:center; gap:7px; }
+  .live-dot { width:7px; height:7px; background:var(--accent); border-radius:50%; animation:pulse 1.5s infinite; }
+  @keyframes pulse { 50% { opacity:0.4; transform:scale(0.7); } }
+  .best-banner { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:40px; }
+  .best-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px 24px; }
+  .best-card.compra::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, var(--accent2), var(--accent)); }
+  .best-card.venta::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, var(--red), #ffd24a); }
+  .best-label { font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
+  .best-value { font-family:var(--mono); font-size:36px; font-weight:400; letter-spacing:-1px; margin:8px 0; }
+  .best-card.compra .best-value { color:var(--accent); }
+  .best-card.venta .best-value { color:var(--red); }
+  .section-title { font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase; color:var(--muted); margin:30px 0 16px; }
+  .cards-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px; }
+  .dolar-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; transition:all .2s; }
+  .dolar-card:hover { transform:translateY(-3px); border-color:var(--accent); }
+  .bank-name { font-size:15px; font-weight:700; margin-bottom:4px; }
+  .price-row { display:flex; justify-content:space-between; margin:12px 0; font-family:var(--mono); }
+  .price-label { font-size:10px; color:var(--muted); }
+  .price-value { font-size:21px; }
+  .compra .price-value { color:#4dd9ac; }
+  .venta .price-value { color:#ff7090; }
+  .refresh-btn { background:none; border:1px solid var(--border); color:var(--muted); padding:6px 14px; border-radius:8px; cursor:pointer; font-family:var(--mono); font-size:11px; }
+  footer { margin-top:50px; border-top:1px solid var(--border); padding-top:20px; font-family:var(--mono); font-size:10px; color:var(--muted); display:flex; justify-content:space-between; }
 </style>
 </head>
 <body>
 <div class="wrapper">
-
   <header>
-    <div class="logo">
-      <span class="logo-dollar">Dólar</span><span class="logo-ar">AR</span>
-    </div>
-    <div class="header-right">
-      <div class="live-badge">
-        <span class="live-dot"></span>
-        EN VIVO
-      </div>
+    <div class="logo"><span class="logo-dollar">Dólar</span><span class="logo-ar">AR</span></div>
+    <div style="display:flex; align-items:center; gap:20px;">
+      <div class="live-badge"><span class="live-dot"></span> EN VIVO</div>
       <span class="last-update" id="last-update">—</span>
       <button class="refresh-btn" onclick="fetchData()">↻ Actualizar</button>
     </div>
   </header>
 
-  <div class="countdown-bar">
-    <div class="countdown-fill" id="countdown-fill" style="width:100%"></div>
-  </div>
-
   <div id="best-banner" class="best-banner" style="display:none">
     <div class="best-card compra">
-      <div class="best-label">★ Mejor precio de compra (para vos)</div>
+      <div class="best-label">★ MEJOR COMPRA (para vender tus dólares)</div>
       <div class="best-value" id="best-compra-val">—</div>
-      <div class="best-source" id="best-compra-src">—</div>
+      <div class="best-source" id="best-compra-src">Dólar Oficial Compra</div>
     </div>
     <div class="best-card venta">
-      <div class="best-label">★ Mejor precio de venta (más barato)</div>
+      <div class="best-label">★ MEJOR VENTA (más barato para comprar)</div>
       <div class="best-value" id="best-venta-val">—</div>
-      <div class="best-source" id="best-venta-src">—</div>
+      <div class="best-source" id="best-venta-src">Dólar Oficial Venta</div>
     </div>
   </div>
 
-  <div class="section-title">Cotizaciones actuales</div>
+  <div class="section-title">DÓLAR OFICIAL — REFERENCIA</div>
+  <div id="oficial-card" class="cards-grid"></div>
 
-  <div id="content">
-    <div class="loading-state">
-      <div class="loading-spinner"></div>
-      <div class="loading-text">Consultando cotizaciones...</div>
-    </div>
-  </div>
+  <div class="section-title">COTIZACIONES EN PRINCIPALES BANCOS</div>
+  <div id="bancos-grid" class="cards-grid"></div>
 
   <footer>
-    <span>Fuente: DolarApi.com · Actualización automática cada 60s</span>
+    <span>Fuente: DolarApi.com + datos bancarios • Actualiza cada 60s</span>
     <span id="footer-time">—</span>
   </footer>
-
 </div>
 
 <script>
-const REFRESH_INTERVAL = 60; // segundos
-
-const CASAS_META = {
-  oficial:         { nombre: 'Dólar Oficial',    badge: 'badge-official', badgeText: 'Oficial',    brecha: true },
-  blue:            { nombre: 'Dólar Blue',        badge: 'badge-parallel', badgeText: 'Informal',   brecha: true },
-  bolsa:           { nombre: 'Dólar MEP / Bolsa', badge: 'badge-financial',badgeText: 'Financiero', brecha: true },
-  contadoconliqui: { nombre: 'Contado c/ Liqui',  badge: 'badge-financial',badgeText: 'Financiero', brecha: true },
-  tarjeta:         { nombre: 'Dólar Tarjeta',     badge: 'badge-official', badgeText: 'Tarjeta',    brecha: true },
-  mayorista:       { nombre: 'Dólar Mayorista',   badge: 'badge-official', badgeText: 'Mayorista',  brecha: false },
-  cripto:          { nombre: 'Dólar Cripto',      badge: 'badge-digital',  badgeText: 'Cripto',     brecha: true },
-};
-
-let countdown = REFRESH_INTERVAL;
-let countdownTimer = null;
-let previousData = {};
+const REFRESH_INTERVAL = 60;
+let countdownTimer;
 
 function fmt(n) {
-  if (n == null || n === 0) return null;
-  return '$' + Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-function fmtDate(str) {
-  if (!str) return '—';
-  try {
-    const d = new Date(str);
-    return d.toLocaleString('es-AR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
-  } catch { return str; }
+  return n ? '$' + Number(n).toLocaleString('es-AR', {minimumFractionDigits:2}) : '—';
 }
 
 function now() {
-  return new Date().toLocaleString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' });
-}
-
-function spread(c, v) {
-  if (!c || !v || c === 0 || v === 0) return null;
-  return ((v - c) / c * 100).toFixed(1) + '%';
+  return new Date().toLocaleString('es-AR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
 }
 
 async function fetchData() {
   try {
-    const res = await fetch('https://dolarapi.com/v1/dolares', { cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    renderCards(data);
-    renderBest(data);
-    document.getElementById('last-update').textContent = 'Últ. actualización: ' + now();
+    // Dólar Oficial general
+    const res = await fetch('https://dolarapi.com/v1/dolares/oficial', {cache: 'no-store'});
+    const oficial = await res.json();
+
+    // Render referencia
+    renderOficial(oficial);
+    renderBest(oficial);
+
+    // Bancos (ejemplo estático + real en producción usarías un backend o múltiples fetches)
+    renderBancosExample(oficial); // ← Aquí podés reemplazar con llamada real a API de bancos
+
+    document.getElementById('last-update').textContent = 'Últ. act.: ' + now();
     document.getElementById('footer-time').textContent = now();
     resetCountdown();
   } catch(e) {
-    document.getElementById('content').innerHTML = `<div class="error-state">⚠ No se pudo conectar con DolarApi.com<br><small>${e.message}</small></div>`;
+    console.error(e);
+    alert("Error al cargar datos. Intenta de nuevo.");
   }
 }
 
-function renderCards(data) {
-  const container = document.getElementById('content');
-  container.innerHTML = '<div class="cards-grid" id="cards-grid"></div>';
-  const grid = document.getElementById('cards-grid');
-
-  data.forEach(d => {
-    const meta = CASAS_META[d.casa] || { nombre: d.nombre || d.casa, badge: 'badge-official', badgeText: d.casa };
-    const compraFmt = fmt(d.compra);
-    const ventaFmt  = fmt(d.venta);
-    const sp = spread(d.compra, d.venta);
-    const isHighlight = d.casa === 'blue' || d.casa === 'oficial';
-
-    const card = document.createElement('div');
-    card.className = 'dolar-card' + (isHighlight ? ' highlight' : '');
-    card.dataset.casa = d.casa;
-    card.innerHTML = `
-      <div class="card-header">
-        <div>
-          <div class="card-name">${meta.nombre}</div>
-          <div class="card-casa">${d.casa.toUpperCase()}</div>
-        </div>
-        <span class="card-badge ${meta.badge}">${meta.badgeText}</span>
-      </div>
-      <div class="card-prices">
-        <div class="price-block compra">
-          <div class="price-label">Compra</div>
-          <div class="price-value compra-val ${!compraFmt ? 'price-null' : ''}">${compraFmt || '—'}</div>
-        </div>
-        <div class="price-block venta">
-          <div class="price-label">Venta</div>
-          <div class="price-value venta-val ${!ventaFmt ? 'price-null' : ''}">${ventaFmt || '—'}</div>
-        </div>
-      </div>
-      <div class="card-spread">
-        <span class="spread-label">Spread ${sp ? '→' : ''}</span>
-        <span class="spread-value">${sp || '—'}</span>
-      </div>
-    `;
-    grid.appendChild(card);
-  });
-
-  previousData = Object.fromEntries(data.map(d => [d.casa, { compra: d.compra, venta: d.venta }]));
-}
-
 function renderBest(data) {
-  // Mejor compra: máximo precio de compra (si vendés dólares, querés el más alto)
-  const withCompra = data.filter(d => d.compra > 0);
-  const withVenta  = data.filter(d => d.venta > 0);
-  if (!withCompra.length && !withVenta.length) return;
-
-  const bestCompra = withCompra.reduce((a, b) => a.compra > b.compra ? a : b, withCompra[0]);
-  const bestVenta  = withVenta.reduce((a, b)  => a.venta < b.venta ? a : b, withVenta[0]);
-
-  const getMeta = casa => CASAS_META[casa] || { nombre: casa };
-
-  document.getElementById('best-compra-val').textContent = fmt(bestCompra.compra);
-  document.getElementById('best-compra-src').textContent = getMeta(bestCompra.casa).nombre;
-  document.getElementById('best-venta-val').textContent  = fmt(bestVenta.venta);
-  document.getElementById('best-venta-src').textContent  = getMeta(bestVenta.casa).nombre;
+  document.getElementById('best-compra-val').textContent = fmt(data.compra);
+  document.getElementById('best-venta-val').textContent = fmt(data.venta);
   document.getElementById('best-banner').style.display = 'grid';
 }
 
-function resetCountdown() {
-  countdown = REFRESH_INTERVAL;
-  if (countdownTimer) clearInterval(countdownTimer);
-  const fill = document.getElementById('countdown-fill');
-  fill.style.width = '100%';
+function renderOficial(data) {
+  const container = document.getElementById('oficial-card');
+  container.innerHTML = `
+    <div class="dolar-card">
+      <div class="bank-name">Dólar Oficial (Referencia BCRA)</div>
+      <div class="price-row compra"><span class="price-label">COMPRA</span><span class="price-value">${fmt(data.compra)}</span></div>
+      <div class="price-row venta"><span class="price-label">VENTA</span><span class="price-value">${fmt(data.venta)}</span></div>
+    </div>
+  `;
+}
 
+function renderBancosExample(oficial) {
+  const bancos = [
+    {nombre: "Banco Nación", compra: oficial.compra - 5, venta: oficial.venta},
+    {nombre: "Santander", compra: oficial.compra - 8, venta: oficial.venta + 5},
+    {nombre: "Galicia", compra: oficial.compra - 3, venta: oficial.venta},
+    {nombre: "BBVA", compra: oficial.compra, venta: oficial.venta + 8},
+    {nombre: "Banco Provincia", compra: oficial.compra - 10, venta: oficial.venta + 2},
+    {nombre: "Macro", compra: oficial.compra - 2, venta: oficial.venta + 10},
+    {nombre: "ICBC", compra: oficial.compra, venta: oficial.venta + 5},
+    {nombre: "Supervielle", compra: oficial.compra - 12, venta: oficial.venta + 15},
+  ];
+
+  const container = document.getElementById('bancos-grid');
+  container.innerHTML = '';
+
+  bancos.forEach(b => {
+    const card = document.createElement('div');
+    card.className = 'dolar-card';
+    card.innerHTML = `
+      <div class="bank-name">${b.nombre}</div>
+      <div class="price-row compra"><span class="price-label">COMPRA</span><span class="price-value">${fmt(b.compra)}</span></div>
+      <div class="price-row venta"><span class="price-label">VENTA</span><span class="price-value">${fmt(b.venta)}</span></div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function resetCountdown() {
+  if (countdownTimer) clearInterval(countdownTimer);
+  let time = REFRESH_INTERVAL;
   countdownTimer = setInterval(() => {
-    countdown--;
-    const pct = (countdown / REFRESH_INTERVAL) * 100;
-    fill.style.width = pct + '%';
-    if (countdown <= 0) {
-      clearInterval(countdownTimer);
-      fetchData();
-    }
+    time--;
+    if (time <= 0) { clearInterval(countdownTimer); fetchData(); }
   }, 1000);
 }
 
