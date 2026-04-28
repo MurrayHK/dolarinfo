@@ -1,172 +1,213 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DólarAR — Oficial Bancos</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #050b14; --surface: #0b1623; --border: #1a2d42;
-    --accent: #00e5a0; --accent2: #0080ff; --red: #ff4060;
-    --text: #e8f0f8; --muted: #4a6080; --mono: 'DM Mono', monospace; --sans: 'Syne', sans-serif;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh; }
-  body::before { content:''; position:fixed; inset:0; background-image: linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px); background-size:40px 40px; pointer-events:none; z-index:0; }
-  .wrapper { position:relative; z-index:1; max-width:1200px; margin:0 auto; padding:0 20px 60px; }
-  header { display:flex; align-items:center; justify-content:space-between; padding:28px 0 40px; border-bottom:1px solid var(--border); margin-bottom:40px; }
-  .logo { display:flex; align-items:baseline; gap:6px; }
-  .logo-dollar { font-size:28px; font-weight:800; color:var(--accent); letter-spacing:-1px; }
-  .live-badge { background:rgba(0,229,160,0.08); border:1px solid rgba(0,229,160,0.2); border-radius:20px; padding:5px 12px; font-family:var(--mono); font-size:11px; color:var(--accent); display:flex; align-items:center; gap:7px; }
-  .live-dot { width:7px; height:7px; background:var(--accent); border-radius:50%; animation:pulse 1.5s infinite; }
-  @keyframes pulse { 50% { opacity:0.4; transform:scale(0.7); } }
-  .best-banner { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:40px; }
-  .best-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px 24px; }
-  .best-card.compra::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, var(--accent2), var(--accent)); }
-  .best-card.venta::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, var(--red), #ffd24a); }
-  .best-label { font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
-  .best-value { font-family:var(--mono); font-size:36px; font-weight:400; letter-spacing:-1px; margin:8px 0; }
-  .best-card.compra .best-value { color:var(--accent); }
-  .best-card.venta .best-value { color:var(--red); }
-  .section-title { font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase; color:var(--muted); margin:30px 0 16px; }
-  .cards-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px; }
-  .dolar-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; transition:all .2s; }
-  .dolar-card:hover { transform:translateY(-3px); border-color:var(--accent); }
-  .bank-name { font-size:15px; font-weight:700; margin-bottom:4px; }
-  .price-row { display:flex; justify-content:space-between; margin:12px 0; font-family:var(--mono); }
-  .price-label { font-size:10px; color:var(--muted); }
-  .price-value { font-size:21px; }
-  .compra .price-value { color:#4dd9ac; }
-  .venta .price-value { color:#ff7090; }
-  .refresh-btn { background:none; border:1px solid var(--border); color:var(--muted); padding:6px 14px; border-radius:8px; cursor:pointer; font-family:var(--mono); font-size:11px; }
-  footer { margin-top:50px; border-top:1px solid var(--border); padding-top:20px; font-family:var(--mono); font-size:10px; color:var(--muted); display:flex; justify-content:space-between; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dólar Hoy - Bancos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <style>
+    body { font-family: system-ui, sans-serif; }
+    .price { font-size: 2.9rem; font-weight: 800; letter-spacing: -2px; }
+  </style>
 </head>
-<body>
-<div class="wrapper">
-  <header>
-    <div class="logo"><span class="logo-dollar">Dólar</span><span class="logo-ar">AR</span></div>
-    <div style="display:flex; align-items:center; gap:20px;">
-      <div class="live-badge"><span class="live-dot"></span> EN VIVO</div>
-      <span class="last-update" id="last-update">—</span>
-      <button class="refresh-btn" onclick="fetchData()">↻ Actualizar</button>
-    </div>
-  </header>
+<body class="bg-gray-950 text-white min-h-screen">
+  <div class="max-w-5xl mx-auto p-6">
+    <h1 class="text-4xl font-bold text-center mb-2">💵 Dólar Hoy en Bancos</h1>
+    <p class="text-center text-gray-400 mb-2">Solo los bancos que pediste</p>
 
-  <div id="best-banner" class="best-banner" style="display:none">
-    <div class="best-card compra">
-      <div class="best-label">★ MEJOR COMPRA (para vender tus dólares)</div>
-      <div class="best-value" id="best-compra-val">—</div>
-      <div class="best-source" id="best-compra-src">Dólar Oficial Compra</div>
+    <div class="flex justify-center items-center gap-4 mb-8 text-sm">
+      <span id="status" class="text-emerald-400 flex items-center gap-2">
+        <i class="fas fa-circle animate-pulse"></i> Actualizando...
+      </span>
+      <span id="countdown" class="text-gray-400"></span>
+      <button onclick="toggleAutoUpdate()" id="btn-auto"
+              class="text-xs px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded-full transition">
+        Auto: ON
+      </button>
     </div>
-    <div class="best-card venta">
-      <div class="best-label">★ MEJOR VENTA (más barato para comprar)</div>
-      <div class="best-value" id="best-venta-val">—</div>
-      <div class="best-source" id="best-venta-src">Dólar Oficial Venta</div>
+
+    <!-- MEJOR COTIZACIÓN -->
+    <div id="mejor" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10"></div>
+
+    <!-- TABLA -->
+    <div class="bg-gray-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div class="flex justify-between items-center px-6 py-5 border-b border-gray-800">
+        <h2 class="text-2xl font-semibold">Bancos seleccionados</h2>
+        <button onclick="cargarDatos()" 
+                class="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-2xl flex items-center gap-3 transition-all">
+          <i class="fas fa-sync"></i> Actualizar ahora
+        </button>
+      </div>
+      <table class="w-full" id="tabla">
+        <thead class="bg-gray-800">
+          <tr>
+            <th class="px-6 py-4 text-left">Banco</th>
+            <th class="px-6 py-4 text-center">Compra</th>
+            <th class="px-6 py-4 text-center">Venta</th>
+            <th class="px-6 py-4 text-center">Actualizado</th>
+          </tr>
+        </thead>
+        <tbody class="text-gray-300 divide-y divide-gray-800" id="tabla-body"></tbody>
+      </table>
     </div>
+
+    <p class="text-center text-xs text-gray-500 mt-8">
+      Fuente: <a href="https://www.infodolar.com/" target="_blank" class="hover:underline">infodolar.com</a><br>
+      Última actualización: <span id="ultima-actualizacion"></span>
+    </p>
   </div>
 
-  <div class="section-title">DÓLAR OFICIAL — REFERENCIA</div>
-  <div id="oficial-card" class="cards-grid"></div>
+  <script>
+    const bancosDeseados = new Set([
+      "Banco Santa Fe", "Banco Hipotecario", "BBVA Banco Francés",
+      "Banco Provincia", "Banco Nación", "Banco Supervielle",
+      "Banco de Córdoba", "ICBC", "Banco Entre Ríos"
+    ]);
 
-  <div class="section-title">COTIZACIONES EN PRINCIPALES BANCOS</div>
-  <div id="bancos-grid" class="cards-grid"></div>
+    let autoInterval = null;
+    let countdownInterval = null;
+    let timeLeft = 300; // 5 minutos en segundos
 
-  <footer>
-    <span>Fuente: DolarApi.com + datos bancarios • Actualiza cada 60s</span>
-    <span id="footer-time">—</span>
-  </footer>
-</div>
+    async function cargarDatos() {
+      const proxy = "https://api.codetabs.com/v1/proxy?quest=";
+      const url = "https://www.infodolar.com/";
 
-<script>
-const REFRESH_INTERVAL = 60;
-let countdownTimer;
+      document.getElementById("status").innerHTML = `<i class="fas fa-spinner fa-spin"></i> Cargando...`;
 
-function fmt(n) {
-  return n ? '$' + Number(n).toLocaleString('es-AR', {minimumFractionDigits:2}) : '—';
-}
+      try {
+        const res = await fetch(proxy + encodeURIComponent(url));
+        if (!res.ok) throw new Error("Error de red");
 
-function now() {
-  return new Date().toLocaleString('es-AR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
-}
+        const html = await res.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
 
-async function fetchData() {
-  try {
-    // Dólar Oficial general
-    const res = await fetch('https://dolarapi.com/v1/dolares/oficial', {cache: 'no-store'});
-    const oficial = await res.json();
+        let tabla = null;
+        const tablas = doc.querySelectorAll("table");
+        for (let t of tablas) {
+          if (t.textContent.includes("Banco Santa Fe") && t.textContent.includes("Compra")) {
+            tabla = t;
+            break;
+          }
+        }
 
-    // Render referencia
-    renderOficial(oficial);
-    renderBest(oficial);
+        if (!tabla) throw new Error("Tabla no encontrada");
 
-    // Bancos (ejemplo estático + real en producción usarías un backend o múltiples fetches)
-    renderBancosExample(oficial); // ← Aquí podés reemplazar con llamada real a API de bancos
+        const filas = tabla.querySelectorAll("tr");
+        let datos = [];
 
-    document.getElementById('last-update').textContent = 'Últ. act.: ' + now();
-    document.getElementById('footer-time').textContent = now();
-    resetCountdown();
-  } catch(e) {
-    console.error(e);
-    alert("Error al cargar datos. Intenta de nuevo.");
-  }
-}
+        filas.forEach(fila => {
+          const celdas = Array.from(fila.querySelectorAll("td"));
+          if (celdas.length < 3) return;
 
-function renderBest(data) {
-  document.getElementById('best-compra-val').textContent = fmt(data.compra);
-  document.getElementById('best-venta-val').textContent = fmt(data.venta);
-  document.getElementById('best-banner').style.display = 'grid';
-}
+          let banco = celdas[0].textContent.trim()
+            .replace(/ADVERTISEMENT.*/i, "")
+            .replace(/\s+/g, " ")
+            .trim();
 
-function renderOficial(data) {
-  const container = document.getElementById('oficial-card');
-  container.innerHTML = `
-    <div class="dolar-card">
-      <div class="bank-name">Dólar Oficial (Referencia BCRA)</div>
-      <div class="price-row compra"><span class="price-label">COMPRA</span><span class="price-value">${fmt(data.compra)}</span></div>
-      <div class="price-row venta"><span class="price-label">VENTA</span><span class="price-value">${fmt(data.venta)}</span></div>
-    </div>
-  `;
-}
+          if (!bancosDeseados.has(banco)) return;
 
-function renderBancosExample(oficial) {
-  const bancos = [
-    {nombre: "Banco Nación", compra: oficial.compra - 5, venta: oficial.venta},
-    {nombre: "Santander", compra: oficial.compra - 8, venta: oficial.venta + 5},
-    {nombre: "Galicia", compra: oficial.compra - 3, venta: oficial.venta},
-    {nombre: "BBVA", compra: oficial.compra, venta: oficial.venta + 8},
-    {nombre: "Banco Provincia", compra: oficial.compra - 10, venta: oficial.venta + 2},
-    {nombre: "Macro", compra: oficial.compra - 2, venta: oficial.venta + 10},
-    {nombre: "ICBC", compra: oficial.compra, venta: oficial.venta + 5},
-    {nombre: "Supervielle", compra: oficial.compra - 12, venta: oficial.venta + 15},
-  ];
+          const compra = (celdas[1]?.textContent.trim() || "").split("=")[0].trim();
+          const venta = (celdas[2]?.textContent.trim() || "").split("=")[0].trim();
+          const hora = "—";
 
-  const container = document.getElementById('bancos-grid');
-  container.innerHTML = '';
+          datos.push({ banco, compra, venta, hora });
+        });
 
-  bancos.forEach(b => {
-    const card = document.createElement('div');
-    card.className = 'dolar-card';
-    card.innerHTML = `
-      <div class="bank-name">${b.nombre}</div>
-      <div class="price-row compra"><span class="price-label">COMPRA</span><span class="price-value">${fmt(b.compra)}</span></div>
-      <div class="price-row venta"><span class="price-label">VENTA</span><span class="price-value">${fmt(b.venta)}</span></div>
-    `;
-    container.appendChild(card);
-  });
-}
+        // Render tabla
+        const tbody = document.getElementById("tabla-body");
+        tbody.innerHTML = "";
+        datos.forEach(d => {
+          tbody.innerHTML += `
+            <tr class="hover:bg-gray-800/70 transition-colors">
+              <td class="px-6 py-4 font-medium">${d.banco}</td>
+              <td class="px-6 py-4 text-center text-emerald-400 font-semibold">${d.compra}</td>
+              <td class="px-6 py-4 text-center text-rose-400 font-semibold">${d.venta}</td>
+              <td class="px-6 py-4 text-center text-gray-400 text-sm">${d.hora}</td>
+            </tr>
+          `;
+        });
 
-function resetCountdown() {
-  if (countdownTimer) clearInterval(countdownTimer);
-  let time = REFRESH_INTERVAL;
-  countdownTimer = setInterval(() => {
-    time--;
-    if (time <= 0) { clearInterval(countdownTimer); fetchData(); }
-  }, 1000);
-}
+        // Mejor cotización
+        if (datos.length > 0) {
+          const mejorCompra = [...datos].sort((a,b) => parsePrecio(a.venta) - parsePrecio(b.venta))[0];
+          const mejorVenta = [...datos].sort((a,b) => parsePrecio(b.compra) - parsePrecio(a.compra))[0];
 
-fetchData();
-</script>
+          document.getElementById("mejor").innerHTML = `
+            <div class="bg-emerald-900/70 border border-emerald-700 rounded-3xl p-8 text-center">
+              <p class="text-emerald-400 uppercase text-sm tracking-widest">Mejor para COMPRAR</p>
+              <p class="text-xl mt-3">${mejorCompra.banco}</p>
+              <p class="price text-emerald-400">${mejorCompra.venta}</p>
+            </div>
+            <div class="bg-amber-900/70 border border-amber-700 rounded-3xl p-8 text-center">
+              <p class="text-amber-400 uppercase text-sm tracking-widest">Mejor para VENDER</p>
+              <p class="text-xl mt-3">${mejorVenta.banco}</p>
+              <p class="price text-amber-400">${mejorVenta.compra}</p>
+            </div>
+          `;
+        }
+
+        document.getElementById("ultima-actualizacion").textContent = 
+          new Date().toLocaleTimeString('es-AR');
+
+        document.getElementById("status").innerHTML = `<i class="fas fa-check"></i> Actualizado`;
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById("status").innerHTML = `<i class="fas fa-exclamation-triangle text-yellow-400"></i> Error`;
+      }
+
+      resetCountdown();
+    }
+
+    function parsePrecio(str) {
+      return parseFloat(str.replace(/[^0-9,]/g, "").replace(",", ".")) || 999999;
+    }
+
+    function startAutoUpdate() {
+      if (autoInterval) clearInterval(autoInterval);
+      autoInterval = setInterval(cargarDatos, 300000); // 5 minutos
+    }
+
+    function resetCountdown() {
+      if (countdownInterval) clearInterval(countdownInterval);
+      timeLeft = 300;
+      updateCountdownDisplay();
+
+      countdownInterval = setInterval(() => {
+        timeLeft--;
+        updateCountdownDisplay();
+        if (timeLeft <= 0) timeLeft = 300;
+      }, 1000);
+    }
+
+    function updateCountdownDisplay() {
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      document.getElementById("countdown").textContent = 
+        `Próxima actualización en ${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    function toggleAutoUpdate() {
+      const btn = document.getElementById("btn-auto");
+      if (autoInterval) {
+        clearInterval(autoInterval);
+        autoInterval = null;
+        btn.textContent = "Auto: OFF";
+        btn.classList.add("line-through");
+      } else {
+        startAutoUpdate();
+        btn.textContent = "Auto: ON";
+        btn.classList.remove("line-through");
+      }
+    }
+
+    // Iniciar todo
+    window.onload = () => {
+      cargarDatos();
+      startAutoUpdate();
+    };
+  </script>
 </body>
 </html>
